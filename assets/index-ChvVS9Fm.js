@@ -17713,7 +17713,7 @@ function DownloadTabIsolated() {
 			if (!game) return;
 			let steamData = {};
 			try {
-				const response = await fetch(`http://localhost:3000/api/steam/${game.steamId}`);
+				const response = await fetch(`/api/steam/${game.steamId}`);
 				const payload = await response.json();
 				steamData = payload?.[game.steamId]?.data || {};
 			} catch (error) {

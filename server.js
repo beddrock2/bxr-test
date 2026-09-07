@@ -9,6 +9,11 @@ const rateLimitMax = 30;
 const requestCounts = new Map();
 
 app.use(cors({ origin: allowedOrigin }));
+app.use(express.static(__dirname));
+
+app.get(["/", "/download", "/contribution"], (req, res) => {
+  res.sendFile(`${__dirname}/index.html`);
+});
 
 async function fetchSteamJson(url, res) {
   const controller = new AbortController();
