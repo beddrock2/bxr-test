@@ -17764,7 +17764,7 @@ function DownloadTabIsolated() {
 		const section = document.getElementById("download-tab");
 		if (!section) return;
 		const catalog = section.querySelector("#catalog-view"), details = section.querySelector("#details-view"), detailGrid = details.querySelector(".detail-grid"), openButtons = section.querySelectorAll("[data-open-details]"), cards = [...openButtons], searchInput = catalog.querySelector(".search input"), filterButtons = [...catalog.querySelectorAll(".filters button")];
-		const applyDetailLayout = () => { detailGrid.style.gridTemplateColumns = window.innerWidth <= 800 ? "1fr" : "minmax(0,7fr) minmax(260px,3fr)"; };
+		const applyDetailLayout = () => { detailGrid.style.setProperty("grid-template-columns", window.innerWidth <= 800 ? "1fr" : "minmax(0,7fr) minmax(260px,3fr)", "important"); };
 		applyDetailLayout();
 		window.addEventListener("resize", applyDetailLayout);
 		const tools = catalog.querySelector(".catalog-tools"), posterGrid = catalog.querySelector(".poster-grid"), originalOrder = [...cards];
@@ -17819,6 +17819,9 @@ function DownloadTabIsolated() {
 				steamData = {};
 			}
 			details.innerHTML = renderDownloadDetails({ ...game, ...steamData, name: gameName });
+			const mirrorGrid = details.querySelector(".mirror-grid"), splitMirrors = details.querySelector(".split-mirrors");
+			if (mirrorGrid) mirrorGrid.style.setProperty("grid-template-columns", "1fr", "important");
+			if (splitMirrors) splitMirrors.style.setProperty("grid-template-columns", "1fr 1fr", "important");
 			const artwork = steamImageUrls(game.steamId), heroArt = details.querySelector(".hero-art"), heroImage = artwork.hero, fallbackHero = steamData.background || steamData.header_image || artwork.header;
 			if (heroArt) {
 				const setHero = image => heroArt.style.backgroundImage = `linear-gradient(90deg,rgba(8,8,10,.9),rgba(8,8,10,.22) 58%,rgba(8,8,10,.08)),linear-gradient(to bottom,rgba(8,8,10,.08) 25%,rgba(8,8,10,.94) 100%),url('${image}')`;
