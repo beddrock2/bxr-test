@@ -17665,7 +17665,7 @@ const steamFallbackDescriptions = {
 const steamArtworkOverrides = {
 	"260210": {
 		hero: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/260210/header.jpg",
-		logo: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/260210/capsule_467x181.jpg"
+		logo: null
 	}
 };
 
@@ -17741,9 +17741,9 @@ function DownloadTabIsolated() {
 				heroProbe.src = heroImage;
 			}
 			const hero = details.querySelector(".hero");
-			if (hero && game.steamId) {
+			if (hero && game.steamId && artwork.logo) {
 				const logo = document.createElement("img");
-				logo.className = "steam-hero-logo";
+				logo.className = `steam-hero-logo${game.steamId === "208480" ? " steam-hero-logo-ac3" : ""}`;
 				const cdnLogo = artwork.logo;
 				logo.src = cdnLogo;
 				logo.alt = `${gameName} logo`;
