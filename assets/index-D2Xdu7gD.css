@@ -2415,6 +2415,12 @@ video {
 	will-change: transform
 }
 
+.page-hidden *,
+.page-hidden *::before,
+.page-hidden *::after {
+	animation-play-state: paused !important
+}
+
 * {
 	scroll-behavior: smooth
 }
