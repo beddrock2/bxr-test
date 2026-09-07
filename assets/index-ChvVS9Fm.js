@@ -17763,8 +17763,8 @@ function DownloadTabIsolated() {
 	k.useEffect(() => {
 		const section = document.getElementById("download-tab");
 		if (!section) return;
-		const catalog = section.querySelector("#catalog-view"), details = section.querySelector("#details-view"), detailGrid = details.querySelector(".detail-grid"), openButtons = section.querySelectorAll("[data-open-details]"), cards = [...openButtons], searchInput = catalog.querySelector(".search input"), filterButtons = [...catalog.querySelectorAll(".filters button")];
-		const applyDetailLayout = () => { detailGrid.style.setProperty("grid-template-columns", window.innerWidth <= 800 ? "1fr" : "minmax(0,4fr) minmax(220px,1fr)", "important"); };
+		const catalog = section.querySelector("#catalog-view"), details = section.querySelector("#details-view"), openButtons = section.querySelectorAll("[data-open-details]"), cards = [...openButtons], searchInput = catalog.querySelector(".search input"), filterButtons = [...catalog.querySelectorAll(".filters button")];
+		const applyDetailLayout = () => { const detailGrid = details.querySelector(".detail-grid"); if (detailGrid) detailGrid.style.setProperty("grid-template-columns", window.innerWidth <= 800 ? "1fr" : "minmax(0,4fr) minmax(220px,1fr)", "important"); };
 		applyDetailLayout();
 		window.addEventListener("resize", applyDetailLayout);
 		const tools = catalog.querySelector(".catalog-tools"), posterGrid = catalog.querySelector(".poster-grid"), originalOrder = [...cards];
@@ -17819,6 +17819,7 @@ function DownloadTabIsolated() {
 				steamData = {};
 			}
 			details.innerHTML = renderDownloadDetails({ ...game, ...steamData, name: gameName });
+			applyDetailLayout();
 			const mirrorGrid = details.querySelector(".mirror-grid"), splitMirrors = details.querySelector(".split-mirrors");
 			if (mirrorGrid) mirrorGrid.style.setProperty("grid-template-columns", "1fr", "important");
 			if (splitMirrors) splitMirrors.style.setProperty("grid-template-columns", "1fr 1fr", "important");
