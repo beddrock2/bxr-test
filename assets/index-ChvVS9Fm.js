@@ -17763,7 +17763,39 @@ function DownloadTabIsolated() {
 	k.useEffect(() => {
 		const section = document.getElementById("download-tab");
 		if (!section) return;
-		const catalog = section.querySelector("#catalog-view"), details = section.querySelector("#details-view"), openButtons = section.querySelectorAll("[data-open-details]");
+		const catalog = section.querySelector("#catalog-view"), details = section.querySelector("#details-view"), openButtons = section.querySelectorAll("[data-open-details]"), cards = [...openButtons], searchInput = catalog.querySelector(".search input"), filterButtons = [...catalog.querySelectorAll(".filters button")];
+		const tools = catalog.querySelector(".catalog-tools"), posterGrid = catalog.querySelector(".poster-grid"), originalOrder = [...cards];
+		const sortBar = document.createElement("div");
+		sortBar.className = "catalog-sortbar";
+		sortBar.innerHTML = `<div class="sort-tabs"><button type="button" class="is-active" data-sort="newest">Newest</button><button type="button" data-sort="updated">Updated</button><button type="button" data-sort="downloads">Downloads</button><button type="button" data-sort="views">Views</button><button type="button" data-sort="az">A-Z</button></div><label class="genre-select"><span>≡</span><select aria-label="Genre"><option value="all">Genre</option><option value="action">Action</option><option value="adventure">Adventure</option><option value="horror">Horror</option><option value="rpg">RPG</option><option value="survival">Survival</option></select></label><button type="button" class="dice-roll" aria-label="Roll a random game">⚄</button>`;
+		tools.insertAdjacentElement("afterend", sortBar);
+		const sortButtons = [...sortBar.querySelectorAll("[data-sort]")], genreSelect = sortBar.querySelector("select"), diceButton = sortBar.querySelector(".dice-roll");
+		const mediaStyle = document.createElement("style");
+		mediaStyle.textContent = `.catalog-tools .filters{display:none}.catalog-sortbar{display:flex;align-items:center;gap:12px;margin:0 0 20px}.sort-tabs{display:flex;align-items:center;gap:2px;padding:3px;border:1px solid rgba(255,255,255,.12);border-radius:9px;background:#111}.sort-tabs button,.genre-select,.dice-roll{border:0;color:#98939b;background:transparent;font:inherit;font-size:12px}.sort-tabs button{padding:7px 12px;border-radius:6px;cursor:pointer}.sort-tabs button.is-active{color:#fff;background:#29282d;box-shadow:0 0 0 1px rgba(255,255,255,.08)}.filters button.is-active{color:#fff;background:var(--orange)}.genre-select{display:flex;align-items:center;gap:6px;padding:8px 11px;border:1px solid rgba(255,255,255,.12);border-radius:9px;background:#111}.genre-select select{border:0;outline:0;color:#aaa;background:#111;font:inherit;cursor:pointer}.dice-roll{display:grid;place-items:center;width:36px;height:36px;border:1px solid rgba(255,255,255,.14);border-radius:9px;color:#fff;background:#151515;font-size:19px;cursor:pointer;transition:.2s}.dice-roll:hover{border-color:#ff5500;color:#ff5500;transform:rotate(12deg)}.roll-overlay{position:fixed;z-index:80;inset:0;display:grid;place-items:center;padding:24px;background:rgba(3,3,5,.86);backdrop-filter:blur(8px)}.roll-window{width:min(900px,92vw);overflow:hidden;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:#111116;box-shadow:0 25px 80px rgba(0,0,0,.65)}.roll-window h2{margin:0;padding:18px;text-align:center;color:#fff;font-family:Orbitron,sans-serif;font-size:15px}.roll-viewport{position:relative;overflow:hidden;padding:22px 0;border-top:1px solid rgba(255,255,255,.1);border-bottom:1px solid rgba(255,255,255,.1)}.roll-viewport:before{content:"";position:absolute;z-index:2;inset:0 50%;width:2px;background:#ff5500;box-shadow:0 0 24px #ff5500}.roll-track{display:flex;gap:12px;width:max-content;transform:translateX(0);transition:transform 2.3s cubic-bezier(.12,.72,.15,1)}.roll-card{width:150px;min-width:150px;height:205px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.18);border-radius:9px;background:#222}.roll-card .cover{position:absolute;inset:0;background-size:cover;background-position:center}.roll-card .roll-name{position:absolute;right:8px;bottom:8px;left:8px;color:#fff;font-weight:800;font-size:11px;text-shadow:0 2px 8px #000}.roll-close{display:block;margin:15px auto;padding:8px 18px;border:1px solid #ff5500;border-radius:7px;color:#fff;background:transparent;cursor:pointer}#download-tab .detail-grid{grid-template-columns:minmax(0,7fr) minmax(260px,3fr)}@media(max-width:800px){.catalog-sortbar{flex-wrap:wrap}.sort-tabs{order:2;width:100%;overflow-x:auto}.genre-select{order:1}.dice-roll{order:1}#download-tab .detail-grid{grid-template-columns:1fr}}`;
+		document.head.appendChild(mediaStyle);
+		let activeFilter = "all", activeSort = "newest", activeGenre = "all";
+		const applyCatalogState = () => {
+			const query = (searchInput.value || "").trim().toLowerCase();
+			const ordered = [...originalOrder].sort((left, right) => activeSort === "az" ? left.dataset.game.localeCompare(right.dataset.game) : activeSort === "newest" ? originalOrder.indexOf(left) - originalOrder.indexOf(right) : originalOrder.indexOf(right) - originalOrder.indexOf(left));
+			ordered.forEach(card => posterGrid.appendChild(card));
+			cards.forEach(card => {
+				const text = `${card.dataset.game} ${card.querySelector(".tag")?.textContent || ""} ${card.querySelector("p")?.textContent || ""}`.toLowerCase();
+				const genre = (card.querySelector(".tag")?.textContent || "").toLowerCase();
+				const matchesFilter = activeFilter === "all" || activeFilter === "recent" && originalOrder.indexOf(card) >= 6 || activeFilter !== "recent" && genre.includes(activeFilter);
+				const matchesGenre = activeGenre === "all" || genre.includes(activeGenre);
+				card.hidden = !(matchesFilter && matchesGenre && text.includes(query));
+			});
+		};
+		const filterEvents = filterButtons.map(button => { const handler = () => { const label = button.textContent.trim().toLowerCase(); activeFilter = label === "all games" ? "all" : label === "recently added" ? "recent" : label; filterButtons.forEach(item => item.classList.toggle("is-active", item === button)); applyCatalogState(); }; button.addEventListener("click", handler); return [button, handler]; });
+		const searchHandler = () => applyCatalogState();
+		searchInput.addEventListener("input", searchHandler);
+		const sortEvents = sortButtons.map(button => { const handler = () => { activeSort = button.dataset.sort; sortButtons.forEach(item => item.classList.toggle("is-active", item === button)); applyCatalogState(); }; button.addEventListener("click", handler); return [button, handler]; });
+		const genreHandler = () => { activeGenre = genreSelect.value; applyCatalogState(); };
+		genreSelect.addEventListener("change", genreHandler);
+		const rollOverlay = document.createElement("div");
+		const rollHandler = () => { const available = cards.filter(card => !card.hidden); if (!available.length) return; const winner = available[Math.floor(Math.random() * available.length)]; rollOverlay.className = "roll-overlay"; const track = [...Array(14)].flatMap(() => available).map(card => `<div class="roll-card"><span class="cover" style="background-image:${card.style.getPropertyValue("--cover")}"></span><span class="roll-name">${card.dataset.game}</span></div>`).join(""); rollOverlay.innerHTML = `<div class="roll-window"><h2>Rolling your next game</h2><div class="roll-viewport"><div class="roll-track">${track}</div></div><button class="roll-close" type="button">Close</button></div>`; document.body.appendChild(rollOverlay); const winnerIndex = 13 * available.length + available.indexOf(winner); requestAnimationFrame(() => rollOverlay.querySelector(".roll-track").style.transform = `translateX(calc(50% - ${(winnerIndex * 162) + 75}px))`); rollOverlay.querySelector(".roll-close").addEventListener("click", () => rollOverlay.remove()); };
+		diceButton.addEventListener("click", rollHandler);
+		applyCatalogState();
 		openButtons.forEach(button => {
 			const game = downloadGameDetails[button.dataset.game], images = game && steamImageUrls(game.steamId);
 			if (!game || !images) return;
@@ -17838,7 +17870,7 @@ function DownloadTabIsolated() {
 			if (event.target.closest(".primary-download")) details.querySelector(".mirror-grid")?.scrollIntoView({ behavior: "smooth", block: "center" });
 		};
 		return openButtons.forEach(button => button.addEventListener("click", openDetails)), details.addEventListener("click", openCatalog), () => {
-			openButtons.forEach(button => button.removeEventListener("click", openDetails)), details.removeEventListener("click", openCatalog)
+			openButtons.forEach(button => button.removeEventListener("click", openDetails)), details.removeEventListener("click", openCatalog), searchInput.removeEventListener("input", searchHandler), genreSelect.removeEventListener("change", genreHandler), diceButton.removeEventListener("click", rollHandler), filterEvents.forEach(([button, handler]) => button.removeEventListener("click", handler)), sortEvents.forEach(([button, handler]) => button.removeEventListener("click", handler)), sortBar.remove(), mediaStyle.remove(), rollOverlay.remove()
 		}
 	}, []);
 	return a.jsxs(a.Fragment, {
