@@ -17763,7 +17763,10 @@ function DownloadTabIsolated() {
 	k.useEffect(() => {
 		const section = document.getElementById("download-tab");
 		if (!section) return;
-		const catalog = section.querySelector("#catalog-view"), details = section.querySelector("#details-view"), openButtons = section.querySelectorAll("[data-open-details]"), cards = [...openButtons], searchInput = catalog.querySelector(".search input"), filterButtons = [...catalog.querySelectorAll(".filters button")];
+		const catalog = section.querySelector("#catalog-view"), details = section.querySelector("#details-view"), detailGrid = details.querySelector(".detail-grid"), openButtons = section.querySelectorAll("[data-open-details]"), cards = [...openButtons], searchInput = catalog.querySelector(".search input"), filterButtons = [...catalog.querySelectorAll(".filters button")];
+		const applyDetailLayout = () => { detailGrid.style.gridTemplateColumns = window.innerWidth <= 800 ? "1fr" : "minmax(0,7fr) minmax(260px,3fr)"; };
+		applyDetailLayout();
+		window.addEventListener("resize", applyDetailLayout);
 		const tools = catalog.querySelector(".catalog-tools"), posterGrid = catalog.querySelector(".poster-grid"), originalOrder = [...cards];
 		const sortBar = document.createElement("div");
 		sortBar.className = "catalog-sortbar";
@@ -17871,7 +17874,7 @@ function DownloadTabIsolated() {
 			if (event.target.closest(".primary-download")) details.querySelector(".mirror-grid")?.scrollIntoView({ behavior: "smooth", block: "center" });
 		};
 		return openButtons.forEach(button => button.addEventListener("click", openDetails)), details.addEventListener("click", openCatalog), () => {
-			openButtons.forEach(button => button.removeEventListener("click", openDetails)), details.removeEventListener("click", openCatalog), searchInput.removeEventListener("input", searchHandler), genreSelect.removeEventListener("change", genreHandler), diceButton.removeEventListener("click", rollHandler), filterEvents.forEach(([button, handler]) => button.removeEventListener("click", handler)), sortEvents.forEach(([button, handler]) => button.removeEventListener("click", handler)), sortBar.remove(), mediaStyle.remove(), rollOverlay.remove()
+			openButtons.forEach(button => button.removeEventListener("click", openDetails)), details.removeEventListener("click", openCatalog), window.removeEventListener("resize", applyDetailLayout), searchInput.removeEventListener("input", searchHandler), genreSelect.removeEventListener("change", genreHandler), diceButton.removeEventListener("click", rollHandler), filterEvents.forEach(([button, handler]) => button.removeEventListener("click", handler)), sortEvents.forEach(([button, handler]) => button.removeEventListener("click", handler)), sortBar.remove(), mediaStyle.remove(), rollOverlay.remove()
 		}
 	}, []);
 	return a.jsxs(a.Fragment, {
