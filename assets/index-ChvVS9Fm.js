@@ -17662,11 +17662,22 @@ const steamFallbackDescriptions = {
 	"Assassin's Creed Liberation": `<h2>About This Game</h2><p>Introducing Assassin's Creed Liberation HD, the striking chapter of the pre-American Revolution saga. With improved gameplay, a deeper story, and HD graphics, Liberation is a full Assassin's Creed experience.</p><p>The year is 1765. As Spanish forces plan to take control of Louisiana, Aveline uses every weapon and ability in her arsenal to fight for freedom.</p><h2 class="bb_tag">Key Features</h2><ul class="bb_ul"><li>Play as Aveline, an Assassin of mixed French and African heritage.</li><li>Use a machete, poison-dart blowpipe, whip, and duelling pistols.</li><li>Explore New Orleans, the Louisiana bayou, and ancient Mayan ruins.</li><li>Experience improved graphics, missions, cinematics, music, and sound.</li></ul>`
 };
 
-const steamImageUrls = steamId => ({
-	poster: `https://cdn.akamai.steamstatic.com/steam/apps/${steamId}/library_600x900.jpg`,
-	header: `https://cdn.akamai.steamstatic.com/steam/apps/${steamId}/header.jpg`,
-	hero: `https://cdn.akamai.steamstatic.com/steam/apps/${steamId}/library_hero.jpg`
-});
+const steamArtworkOverrides = {
+	"260210": {
+		hero: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/260210/header.jpg",
+		logo: "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/260210/capsule_467x181.jpg"
+	}
+};
+
+const steamImageUrls = steamId => {
+	const override = steamArtworkOverrides[steamId] || {};
+	return {
+		poster: `https://cdn.akamai.steamstatic.com/steam/apps/${steamId}/library_600x900.jpg`,
+		header: `https://cdn.akamai.steamstatic.com/steam/apps/${steamId}/header.jpg`,
+		hero: override.hero || `https://cdn.akamai.steamstatic.com/steam/apps/${steamId}/library_hero.jpg`,
+		logo: override.logo || `https://cdn.akamai.steamstatic.com/steam/apps/${steamId}/logo.png`
+	};
+};
 
 const parseSteamRequirements = (html, fallback) => {
 	if (!html) return fallback.map((value, index) => ({ label: ["OS", "Processor", "Memory", "Graphics", "Storage"][index] || "Notes", value }));
@@ -17720,9 +17731,9 @@ function DownloadTabIsolated() {
 				steamData = {};
 			}
 			details.innerHTML = renderDownloadDetails({ ...game, ...steamData, name: gameName });
-			const heroArt = details.querySelector(".hero-art"), heroImage = `https://cdn.akamai.steamstatic.com/steam/apps/${game.steamId}/library_hero.jpg`, fallbackHero = steamData.background || steamData.header_image;
+			const artwork = steamImageUrls(game.steamId), heroArt = details.querySelector(".hero-art"), heroImage = artwork.hero, fallbackHero = steamData.background || steamData.header_image || artwork.header;
 			if (heroArt) {
-				const setHero = image => heroArt.style.backgroundImage = `linear-gradient(90deg,rgba(8,8,10,.68),rgba(8,8,10,.08) 62%),linear-gradient(to bottom,rgba(8,8,10,.08) 25%,rgba(8,8,10,.9) 100%),url('${image}')`;
+				const setHero = image => heroArt.style.backgroundImage = `linear-gradient(90deg,rgba(8,8,10,.9),rgba(8,8,10,.22) 58%,rgba(8,8,10,.08)),linear-gradient(to bottom,rgba(8,8,10,.08) 25%,rgba(8,8,10,.94) 100%),url('${image}')`;
 				setHero(heroImage);
 				const heroProbe = new Image();
 				heroProbe.onload = () => {};
@@ -17733,7 +17744,7 @@ function DownloadTabIsolated() {
 			if (hero && game.steamId) {
 				const logo = document.createElement("img");
 				logo.className = "steam-hero-logo";
-				const cdnLogo = `https://cdn.akamai.steamstatic.com/steam/apps/${game.steamId}/logo.png`;
+				const cdnLogo = artwork.logo;
 				logo.src = cdnLogo;
 				logo.alt = `${gameName} logo`;
 				logo.onerror = () => {
